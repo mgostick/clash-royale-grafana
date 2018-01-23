@@ -24,6 +24,7 @@ def show_member(args):
 
 def create_telegraf_configs(args):
     data = read_cache(args.clan)
+    os.system('rm /etc/telegraf/telegraf.d/*')
     for member in data['members']:
         tag = member['tag']
         telegraf_file = 'telegraf.d/{}.conf'.format(tag)
@@ -36,6 +37,8 @@ def create_telegraf_configs(args):
   tag_keys = ["name"]
 '''.format(tag))
         print('wrote {}'.format(telegraf_file))
+    # telegraf needs a bump to pickup the new configs
+    os.system('service telegraf reload')
 
 
 def list_members(args):
