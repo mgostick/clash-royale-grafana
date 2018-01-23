@@ -24,6 +24,7 @@ def download_stats(member=None):
 
 def create_telegraf_configs():
     data = read_stats()
+    os.system('rm /etc/telegraf/telegraf.d/*')
     for row in data['members']:
         hash = hashlib.sha256(row['name'].encode('utf-8')).hexdigest()
         telegraf_file = '/etc/telegraf/telegraf.d/' + hash + '.conf'
