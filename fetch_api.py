@@ -8,70 +8,86 @@ import time
 import os
 
 
-def download_stats(member=None):
-    data = read_stats()
-    members = {}
-    if member is None:
-        del data['members']
-    else:
-        for row in data['members']:
-            if member == hashlib.sha256(row['name'].encode('utf-8')).hexdigest():
-                members = row
-                break
-        data = members
+def show_clan(args):
+    data = read_cache(args.clan)
+    data.pop('members', None)
     print(json.dumps(data, indent=2))
 
 
-def create_telegraf_configs():
-    data = read_stats()
-    os.system('rm /etc/telegraf/telegraf.d/*')
+def show_member(args):
+    data = read_cache(args.clan)
+    for member in data['members']:
+        if args.member == hashlib.sha256(member['name'].encode('utf-8')).hexdigest():
+            print(json.dumps(member, indent=2))
+            return
+
+
+def create_telegraf_configs(args):
+    data = read_cache(args.clan)
+    for member in data['members']:
+        tag = member['tag']
+        telegraf_file = 'telegraf.d/{}.conf'.format(tag)
+        with open(telegraf_file, 'w') as f:
+            f.write('''[[inputs.exec]]
+  command = "/home/swarm/therebellion/fetch_api.py member {}"
+  timeout = "10s"
+  name_override = "therebellion_members"
+  data_format = "json"
+  tag_keys = ["name"]
+'''.format(tag))
+        print('wrote {}'.format(telegraf_file))
+
+
+def list_members(args):
+    data = read_cache(args.clan)
+    members = []
     for row in data['members']:
-        hash = hashlib.sha256(row['name'].encode('utf-8')).hexdigest()
-        telegraf_file = '/etc/telegraf/telegraf.d/' + hash + '.conf'
-        f = open(telegraf_file, 'w')
-        f.write('[[inputs.exec]]\n')
-        f.write('  command = "/home/swarm/therebellion/fetch_api.py -m \'' + hash + '\'"\n')
-        f.write('  timeout = "10s"\n')
-        f.write('  name_override = "therebellion_members"\n')
-        f.write('  data_format = "json"\n')
-        f.write('  tag_keys = ["name"]\n')
-        f.close()
-    # telegraf needs a bump to pickup the new configs
-    os.system('service telegraf reload')
+        name = row['name']
+        tag = row['tag']
+        members.append('{:<30} {}'.format(name, tag))
+    for member in sorted(members, key=lambda s: s.lower()):
+        print(member)
 
 
-def update_stats(apikey):
-    cache_file = '/tmp/therebellion_stats.json'
-    url = 'http://api.cr-api.com/clan/92090Y'
-    resp = requests.get(url, headers = {'auth': apikey})
+def update_cache(args):
+    cache_file = '/tmp/{}.json'.format(args.clan)
+    url = 'http://api.cr-api.com/clan/{}'.format(args.clan)
+    resp = requests.get(url, headers={'auth': args.apikey})
     if resp.status_code == 200:
         data = json.loads(resp.text)
-        f = open(cache_file, 'w')
-        f.write(json.dumps(data))
-        f.close()
-    else:
-        print(resp)
+        with open(cache_file, 'w') as f:
+            json.dump(data, f, indent=2)
+    print('wrote {}'.format(cache_file))
 
 
-def read_stats():
-    cache_file = '/tmp/therebellion_stats.json'
-    f = open(cache_file, 'r')
-    data = json.loads(f.read())
-    f.close()
-    return data
+def read_cache(clan):
+    cache_file = '/tmp/{}.json'.format(clan)
+    with open(cache_file, 'r') as f:
+        return json.load(f)
 
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument("-m", "--member", type=str, default=None, help="Pull stats for specific member (sha256)")
-    parser.add_argument("-t", "--telegraf", default=False, action='store_true', help="Create telegraf configs")
-    parser.add_argument("-u", "--update", default=False, action='store_true', help="Update the cache")
-    parser.add_argument("-k", "--apikey", type=str, default=None, help="Update the cache")
-    args = parser.parse_args()
+    parser.add_argument('-c', '--clan', type=str, default='92090Y', help='clan tag')
+    subparsers = parser.add_subparsers(help='sub-command help')
 
-    if args.telegraf:
-        create_telegraf_configs()
-    elif args.update:
-        update_stats(args.apikey)
-    else:
-        download_stats(args.member)
+    parser_update = subparsers.add_parser('update', help='update stats and cache to tmp')
+    parser_update.add_argument('-k', '--apikey', type=str, required=True,
+                               help='api.cr-api.com api key (see http://docs.cr-api.com/#/authentication)')
+    parser_update.set_defaults(func=update_cache)
+
+    parser_clan = subparsers.add_parser('clan', help='show clan info')
+    parser_clan.set_defaults(func=show_clan)
+
+    parser_members = subparsers.add_parser('members', help='list all members')
+    parser_members.set_defaults(func=list_members)
+
+    parser_member = subparsers.add_parser('member', help='show member info')
+    parser_member.add_argument('tag', type=str, help='clan member tag')
+    parser_member.set_defaults(func=show_member)
+
+    parser_telegraf = subparsers.add_parser('telegraf', help='write telegraf configs')
+    parser_telegraf.set_defaults(func=create_telegraf_configs)
+
+    args = parser.parse_args()
+    args.func(args)
