@@ -35,6 +35,8 @@ def create_telegraf_configs():
         f.write('  data_format = "json"\n')
         f.write('  tag_keys = ["name"]\n')
         f.close()
+    # telegraf needs a bump to pickup the new configs
+    os.system('service telegraf reload')
 
 
 def update_stats(apikey):
@@ -46,6 +48,8 @@ def update_stats(apikey):
         f = open(cache_file, 'w')
         f.write(json.dumps(data))
         f.close()
+    else:
+        print(resp)
 
 
 def read_stats():
