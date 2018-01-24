@@ -1,6 +1,19 @@
 # clash-royale-grafana
 Download stats from cr-api.com and create grafana graphs using telegraf
 
+## Requirements
+Telegraf must be installed to collect the stats
+
+`https://docs.influxdata.com/telegraf/v1.5/introduction/installation/`
+
+InfluxDB must be installed to store the stats
+
+`https://docs.influxdata.com/influxdb/v1.4/introduction/installation/`
+
+Grafana must be installed to display the stats
+
+`http://docs.grafana.org/installation/`
+
 ## Virtual Env
     python3 -m venv --without-pip .venv
     source .venv/bin/activate
