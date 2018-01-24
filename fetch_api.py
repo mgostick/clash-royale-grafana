@@ -28,12 +28,12 @@ def create_telegraf_configs(args):
         telegraf_file = 'telegraf.d/{}.conf'.format(tag)
         with open(telegraf_file, 'w') as f:
             f.write('''[[inputs.exec]]
-  command = "/home/swarm/therebellion/fetch_api.py member {}"
+  command = "/home/swarm/therebellion/fetch_api.py -c {} member {}"
   timeout = "10s"
   name_override = "therebellion_members"
   data_format = "json"
   tag_keys = ["name"]
-'''.format(tag))
+'''.format(args.clan, tag))
         print('wrote {}'.format(telegraf_file))
     # telegraf needs a bump to pickup the new configs
     os.system('service telegraf reload')
