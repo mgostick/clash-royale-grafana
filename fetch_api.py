@@ -21,11 +21,12 @@ def show_member(args):
 
 
 def create_telegraf_configs(args):
-    data = read_cache(args.clan)
-    os.system('rm /etc/telegraf/telegraf.d/*')
+    clan = args.clan
+    data = read_cache(clan)
+    os.system('rm ./telegraf.d/{}_*'.format(clan))
     for member in data['members']:
         tag = member['tag']
-        telegraf_file = 'telegraf.d/{}.conf'.format(tag)
+        telegraf_file = 'telegraf.d/{}_{}.conf'.format(clan, tag)
         with open(telegraf_file, 'w') as f:
             f.write('''[[inputs.exec]]
   command = "/home/swarm/therebellion/fetch_api.py -c {} member {}"
@@ -33,7 +34,7 @@ def create_telegraf_configs(args):
   name_override = "therebellion_members"
   data_format = "json"
   tag_keys = ["name"]
-'''.format(args.clan, tag))
+'''.format(clan, tag))
         print('wrote {}'.format(telegraf_file))
     # telegraf needs a bump to pickup the new configs
     os.system('service telegraf reload')
