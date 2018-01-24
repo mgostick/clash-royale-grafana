@@ -14,7 +14,6 @@ def show_clan(args):
 
 def show_member(args):
     data = read_cache(args.clan)
-    print(args)
     for member in data['members']:
         if args.tag == member['tag']:
             print(json.dumps(member, indent=2))
