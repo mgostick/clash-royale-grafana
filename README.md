@@ -24,8 +24,12 @@ Grafana must be installed to display the stats
 
 ## Crontab
     # update the cache
-    00,30 * * * * cd /path/to/dir; .venv/bin/python3 fetch_api.py -u -k <API_KEY> -c <CLAN_KEY>
+    00,30 * * * * cd /path/to/dir; .venv/bin/python3 fetch_api.py -c <CLAN_KEY> update -k <API_KEY>
     # update telegraf.d
-    15,45 * * * * cd /path/to/dir; .venv/bin/python3 fetch_api.py -t -k <API_KEY> -c <CLAN_KEY>
+    15,45 * * * * cd /path/to/dir; .venv/bin/python3 fetch_api.py -c <CLAN_KEY> telegraf
 
-Note: the udpate telegraf.d cron must be run as root as it reloads telegraf when new configs are created.
+Before running the update telegraf.d command first create a symlink to your telegraf.d directory
+
+    ln -s /etc/telegraf/telegraf.d .
+
+The udpate telegraf.d cron must be run as root as it reloads telegraf when new configs are created.
