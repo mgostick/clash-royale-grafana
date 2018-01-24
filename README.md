@@ -14,3 +14,5 @@ Download stats from cr-api.com and create grafana graphs using telegraf
     00,30 * * * * cd /path/to/dir; ./fetch_api.py -u -k <API_KEY> -c <CLAN_KEY>
     # update telegraf.d
     15,45 * * * * cd /path/to/dir; ./fetch_api.py -t -k <API_KEY> -c <CLAN_KEY>
+
+Note: the telegraf.d update cron must be run as root as it reloads telegraf when new configs are created.
