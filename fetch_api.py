@@ -3,8 +3,6 @@
 import argparse
 import requests
 import json
-import hashlib
-import time
 import os
 
 
@@ -16,8 +14,9 @@ def show_clan(args):
 
 def show_member(args):
     data = read_cache(args.clan)
+    print(args)
     for member in data['members']:
-        if args.member == hashlib.sha256(member['name'].encode('utf-8')).hexdigest():
+        if args.tag == member['tag']:
             print(json.dumps(member, indent=2))
             return
 
