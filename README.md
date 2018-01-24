@@ -35,4 +35,4 @@ Before running the update telegraf.d command first create a symlink to your tele
 The udpate telegraf.d cron must be run as root as it reloads telegraf when new configs are created.
 
 ## cr-api.com API KEY
-See `http://docs.cr-api.com/#/authentication)`
+See `http://docs.cr-api.com/#/authentication`
