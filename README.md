@@ -8,3 +8,9 @@ Download stats from cr-api.com and create grafana graphs using telegraf
     deactivate
     source .venv/bin/activate
     pip install -r requirements.txt
+
+## Crontab
+    # update the cache
+    00,30 * * * * cd /path/to/dir; ./fetch_api.py -u -k <API_KEY> -c <CLAN_KEY>
+    # update telegraf.d
+    15,45 * * * * cd /path/to/dir; ./fetch_api.py -t -k <API_KEY> -c <CLAN_KEY>
